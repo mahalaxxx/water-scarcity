@@ -18,6 +18,7 @@ LATENCY_DAYS = 7
 LPCD = 55                # litres per person per day (Jal Jeevan Mission norm)
 TANKER_L = 12000         # assumed tanker size (litres)
 MIN_TANK_COVERAGE = 30   # % clear-image coverage needed to trust tank value
+TANK_MAX_HA = 150        # above this, coastal/tidal water dominates (not tanks)
 
 COLORS = {"Low": "green", "Medium": "orange", "High": "red"}
 
@@ -27,9 +28,10 @@ TXT = {
         "note": "Data notes: Block-level view (11 blocks). Rainfall, temperature and "
                 "humidity = NASA POWER (live download, ~50 km grid). Groundwater = "
                 "CGWB 2024 (firka data matched to block by name, yearly). Tank = "
-                "Sentinel-2 satellite water spread (estimate, not depth). Water need "
-                "= estimate (55 L per person per day x Census 2011 rural population). "
-                "Risk = relative ranking among blocks (proxy score).",
+                "Sentinel-2 satellite water spread (indicative estimate, not depth, "
+                "inland blocks only). Water need = estimate (55 L per person per day "
+                "x Census 2011 rural population). Risk = relative ranking among "
+                "blocks (proxy score).",
         "loading": "Downloading latest weather data from NASA POWER...",
         "refresh": "Refresh data now",
         "live_ok": "Live weather data up to",
@@ -49,6 +51,7 @@ TXT = {
         "gw_safe": "Safe, extraction",
         "tank": "Tank water spread (satellite)",
         "tank_na": "Not available yet",
+        "tank_coastal": "Coastal/tidal water dominates (not used in risk)",
         "tank_of_normal": "of normal", "coverage": "clear-image coverage",
         "tank_low": "low confidence (clouds)",
         "demand": "Est. drinking-water need",
@@ -64,10 +67,10 @@ TXT = {
         "note": "தரவு குறிப்பு: ஒன்றிய அளவிலான பார்வை (11 ஒன்றியங்கள்). மழை, வெப்பநிலை, "
                 "ஈரப்பதம் = NASA POWER (நேரடி பதிவிறக்கம், ~50 கி.மீ கிரிட்). நிலத்தடி "
                 "நீர் = CGWB 2024 (ஃபிர்கா தரவு, பெயர் அடிப்படையில் இணைப்பு, "
-                "ஆண்டுதோறும்). ஏரி = Sentinel-2 செயற்கைக்கோள் நீர்ப்பரப்பு (மதிப்பீடு, "
-                "ஆழம் அல்ல). நீர் தேவை = மதிப்பீடு (ஒருவருக்கு நாளொன்றுக்கு 55 லிட்டர் x "
-                "2011 கிராமப்புற மக்கள்தொகை). ஆபத்து = ஒன்றியங்களுக்கிடையே ஒப்பீட்டு "
-                "தரவரிசை.",
+                "ஆண்டுதோறும்). ஏரி = Sentinel-2 செயற்கைக்கோள் நீர்ப்பரப்பு (தோராய "
+                "மதிப்பீடு, ஆழம் அல்ல, உள்நாட்டு ஒன்றியங்கள் மட்டும்). நீர் தேவை = "
+                "மதிப்பீடு (ஒருவருக்கு நாளொன்றுக்கு 55 லிட்டர் x 2011 கிராமப்புற "
+                "மக்கள்தொகை). ஆபத்து = ஒன்றியங்களுக்கிடையே ஒப்பீட்டு தரவரிசை.",
         "loading": "NASA POWER-இலிருந்து சமீபத்திய வானிலை தரவு பெறப்படுகிறது...",
         "refresh": "தரவை இப்போது புதுப்பிக்கவும்",
         "live_ok": "நேரடி வானிலை தரவு, தேதி வரை",
@@ -87,6 +90,7 @@ TXT = {
         "gw_safe": "பாதுகாப்பான நிலை, உறிஞ்சுதல்",
         "tank": "ஏரி நீர்ப்பரப்பு (செயற்கைக்கோள்)",
         "tank_na": "இன்னும் கிடைக்கவில்லை",
+        "tank_coastal": "கடலோர/அலை நீர் அதிகம் (ஆபத்தில் சேர்க்கப்படவில்லை)",
         "tank_of_normal": "இயல்பில்", "coverage": "தெளிவான படங்கள் பரப்பு",
         "tank_low": "குறைந்த நம்பகத்தன்மை (மேகம்)",
         "demand": "மதிப்பிடப்பட்ட குடிநீர் தேவை",
@@ -217,7 +221,10 @@ def compute_risk(df):
     partial = (df["gw_saline"] > 0) & (df["gw_saline"] < 1)
     df.loc[partial, "gw_risk"] = df.loc[partial, "gw_risk"].clip(lower=0.5)
 
-    ok = df["tank_vs_normal_pct"].notna() & (df["tank_coverage_pct"] >= MIN_TANK_COVERAGE)
+    # Tank value is used only for inland blocks with enough clear images
+    ok = (df["tank_vs_normal_pct"].notna()
+          & (df["tank_coverage_pct"] >= MIN_TANK_COVERAGE)
+          & (df["tank_wet_ha"] <= TANK_MAX_HA))
     df["tank_risk"] = np.where(
         ok, 1 - (df["tank_vs_normal_pct"] / 100).clip(0, 1), np.nan
     )
@@ -294,6 +301,8 @@ def gw_text(row, t):
 def tank_text(row, t):
     if pd.isna(row["tank_vs_normal_pct"]):
         return t["tank_na"]
+    if pd.notna(row["tank_wet_ha"]) and row["tank_wet_ha"] > TANK_MAX_HA:
+        return t["tank_coastal"]
     cov = row["tank_coverage_pct"] if pd.notna(row["tank_coverage_pct"]) else 0
     txt = (f"{row['tank_vs_normal_pct']:.0f}% {t['tank_of_normal']} "
            f"({t['coverage']} {cov:.0f}%)")
