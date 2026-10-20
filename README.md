@@ -24,16 +24,16 @@ SMS-style alert message for each block.
 
 ## Data sources
 
-| Data | Source | Real or estimated | Update |
-|---|---|---|---|
-| Rainfall, temperature, humidity (daily, last 10 years) | NASA POWER, about 50 km grid | Real (satellite / model based) | **Live download**, a few days delay |
-| Groundwater stage of extraction and Safe / Saline status | CGWB, *Dynamic Groundwater Resources of Tamil Nadu 2024* (firka level) | Real, matched to blocks by name (approximate) | Yearly report |
-| Tank water spread | Sentinel-2 imagery and JRC Global Surface Water, processed in Google Earth Engine | Satellite estimate (not depth) | Snapshot (45 days to 20 Oct 2026), re-run to update |
-| Block list and panchayat village counts | TNAU Agritech district block list | Real | Static |
-| Rural population (Census 2011) | TN Rural Development Dept, panchayat union table | Real (Mandapam derived, see below) | Static |
-| Drinking-water need | Population x 55 litres per person per day (Jal Jeevan Mission norm); tanker size 12,000 L assumed | **Estimate** | Static |
-| Block coordinates | Approximate block centres | Estimated | Static |
-| Tamil block names | Entered manually | To be verified against the official list | Static |
+| Data                                                     | Source                                                                                            | Real or estimated                             | Update                                              |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| Rainfall, temperature, humidity (daily, last 10 years)   | NASA POWER, about 50 km grid                                                                      | Real (satellite / model based)                | **Live download**, a few days delay                 |
+| Groundwater stage of extraction and Safe / Saline status | CGWB, _Dynamic Groundwater Resources of Tamil Nadu 2024_ (firka level)                            | Real, matched to blocks by name (approximate) | Yearly report                                       |
+| Tank water spread                                        | Sentinel-2 imagery and JRC Global Surface Water, processed in Google Earth Engine                 | Satellite estimate (not depth)                | Snapshot (45 days to 20 Oct 2026), re-run to update |
+| Block list and panchayat village counts                  | TNAU Agritech district block list                                                                 | Real                                          | Static                                              |
+| Rural population (Census 2011)                           | TN Rural Development Dept, panchayat union table                                                  | Real (Mandapam derived, see below)            | Static                                              |
+| Drinking-water need                                      | Population x 55 litres per person per day (Jal Jeevan Mission norm); tanker size 12,000 L assumed | **Estimate**                                  | Static                                              |
+| Block coordinates                                        | Approximate block centres                                                                         | Estimated                                     | Static                                              |
+| Tamil block names                                        | Entered manually                                                                                  | To be verified against the official list      | Static                                              |
 
 **CGWB finding for Ramanathapuram (2024):** 38 firkas assessed. 29 are Safe and
 9 are Saline (Kadaladi, Sayalgudi, S.Tharaikudi, Thirupullani, Thondi,
@@ -118,4 +118,4 @@ An internet connection is needed for the live weather download.
 
 ## Team
 
-(Add your name here.)
+**Team name:** Zenith
