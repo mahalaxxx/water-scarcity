@@ -379,7 +379,7 @@ with left:
     for _, r in df.iterrows():
         folium.CircleMarker(
             location=[r["lat"], r["lon"]],
-            radius=14,
+            radius=9,
             color=COLORS[r["risk_level"]],
             fill=True,
             fill_color=COLORS[r["risk_level"]],
